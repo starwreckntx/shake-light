@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write  # only to publish the APK to this repo's own 'latest' release
 
 jobs:
   build:
@@ -29,3 +29,10 @@ jobs:
           name: ShakeLight-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+      - name: Publish APK to the "latest" release (one-tap phone download)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk ShakeLight-debug.apk
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest ShakeLight-debug.apk --title "Shake Light (latest build)" --notes "Debug build of $GITHUB_SHA. Open on the phone, allow this source, install."
