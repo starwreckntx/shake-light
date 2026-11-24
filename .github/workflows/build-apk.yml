@@ -18,7 +18,8 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - uses: android-actions/setup-android@v3
+      # GitHub's Ubuntu runners ship the Android SDK (ANDROID_HOME is preset);
+      # Gradle fetches any missing platform/build-tools on its own.
       - name: Build debug APK
         run: |
           chmod +x gradlew
