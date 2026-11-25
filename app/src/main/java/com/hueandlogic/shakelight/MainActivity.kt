@@ -40,7 +40,7 @@ class MainActivity : Activity() {
             setTypeface(typeface, Typeface.BOLD)
         })
         root.addView(TextView(this).apply {
-            text = "Shake the phone twice, quickly, to turn the flashlight on or off. " +
+            text = "Shake the phone hard 3 times within about 1.5 seconds to turn the flashlight on or off. " +
                 "Works with the app closed and the screen off while the notification is showing."
             textSize = 15f
             setPadding(0, pad / 2, 0, pad)

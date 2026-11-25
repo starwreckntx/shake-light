@@ -160,7 +160,7 @@ class ShakeService : Service() {
         return Notification.Builder(this, CHANNEL)
             .setSmallIcon(android.R.drawable.ic_menu_view)
             .setContentTitle("Shake Light is on")
-            .setContentText("Shake twice to toggle the flashlight (${Prefs.sensitivity(this)})")
+            .setContentText("Shake hard 3 times to toggle the flashlight (${Prefs.sensitivity(this)})")
             .setContentIntent(open)
             .setOngoing(true)
             .addAction(Notification.Action.Builder(null, "Toggle light", toggle).build())

@@ -7,18 +7,29 @@ import android.hardware.SensorManager
 import kotlin.math.sqrt
 
 /**
- * Fires onShake() after [peaksNeeded] acceleration peaks above [thresholdG] land
- * inside [windowMs]. Two quick jolts are needed, so a bump in a pocket or a dropped
- * phone on a table does not flip the light. A [cooldownMs] debounce follows each trigger.
+ * Intent gesture: [SHAKES_NEEDED] hard jolts above [thresholdG] inside [WINDOW_MS] toggle the
+ * light (same gesture turns it on and off). Walking, a pocket bump or a dropped phone gives one
+ * or two spikes, not three hard ones in a row, so it does not trigger.
+ *
+ * Tuning knobs (all here):
+ *  - SHAKES_NEEDED: how many hard shakes make the gesture.
+ *  - WINDOW_MS: all shakes must land inside this time.
+ *  - MIN_SHAKE_GAP_MS: spikes closer than this count as one shake (a single flick
+ *    produces a forward and a rebound spike ~100-200 ms apart).
+ *  - COOLDOWN_MS: ignore everything for this long after a trigger.
+ *  - Force thresholds live in Prefs.LEVELS.
  */
 class ShakeDetector(
     private val thresholdG: Float,
     private val onShake: () -> Unit,
-    private val peaksNeeded: Int = 2,
-    private val windowMs: Long = 800,
-    private val minPeakGapMs: Long = 120,
-    private val cooldownMs: Long = 1200,
 ) : SensorEventListener {
+
+    companion object {
+        const val SHAKES_NEEDED = 3
+        const val WINDOW_MS = 1500L
+        const val MIN_SHAKE_GAP_MS = 250L
+        const val COOLDOWN_MS = 1500L
+    }
 
     private val peaks = ArrayDeque<Long>()
     private var lastTriggerMs = 0L
@@ -32,13 +43,13 @@ class ShakeDetector(
         if (g < thresholdG) return
 
         val now = event.timestamp / 1_000_000L // ns -> ms (monotonic sensor clock)
-        if (now - lastTriggerMs < cooldownMs) return
-        if (peaks.isNotEmpty() && now - peaks.last() < minPeakGapMs) return // same jolt
+        if (now - lastTriggerMs < COOLDOWN_MS) return
+        if (peaks.isNotEmpty() && now - peaks.last() < MIN_SHAKE_GAP_MS) return // same shake
 
         peaks.addLast(now)
-        while (peaks.isNotEmpty() && now - peaks.first() > windowMs) peaks.removeFirst()
+        while (peaks.isNotEmpty() && now - peaks.first() > WINDOW_MS) peaks.removeFirst()
 
-        if (peaks.size >= peaksNeeded) {
+        if (peaks.size >= SHAKES_NEEDED) {
             peaks.clear()
             lastTriggerMs = now
             onShake()
